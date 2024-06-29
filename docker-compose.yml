@@ -1,21 +1,20 @@
-version: "4.31"
-
 services:
-  api:
-    image: node:18
-    build:
-      context: .
-      target: development
-      dockerfile: ./Dockerfile
-    command: npm run start:dev
-    ports:
-      - "3000:3000"
-    networks:
-      - backend-network
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    restart: unless-stopped
+  # api:
+  #   image: node:18
+  #   build:
+  #     context: .
+  #     target: development
+  #     dockerfile: ./Dockerfile
+  #   command: npm run start:dev
+  #   ports:
+  #     - "3000:3000"
+  #   networks:
+  #     - backend-network
+  #   volumes:
+  #     - .:/usr/src/app
+  #     - /usr/src/app/node_modules
+  #   restart: unless-stopped
+
   db-postgres:
     image: postgres:16.3-alpine3.19
     ports:
@@ -23,10 +22,12 @@ services:
     networks:
       - backend-network
     environment:
-      - POSTGRES_PASSWORD=mysecretpassword
-      - POSTGRES_USER=adminuser
-      - PG_DATA=/var/lib/postgresql/data
+      - POSTGRES_PASSWORD=admin
       - POSTGRES_DB=qrmdb
+      - POSTGRES_USER=admin
+      - PG_DATA=/var/lib/postgresql/data
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
   keycloak:
     image: quay.io/keycloak/keycloak:latest
@@ -35,9 +36,24 @@ services:
     environment:
       - KEYCLOAK_ADMIN=admin
       - KEYCLOAK_ADMIN_PASSWORD=admin
+      - KC_HEALTH_ENABLED=true
+      - KC_METRICS_ENABLED=true
+      - KC_DB=postgres
+      - KC_DB_URL=jdbc:postgresql://db-postgres/qrmdb
+      - KC_DB_USERNAME=admin
+      - KC_DB_PASSWORD=admin
+      - KC_FEATURES=token-exchange
+      - KC_HOSTNAME=localhost
     command: start-dev
+    depends_on:
+      - db-postgres
     networks:
       - backend-network
 
 networks:
   backend-network:
+
+
+volumes:
+  postgres_data:
+    driver: local
