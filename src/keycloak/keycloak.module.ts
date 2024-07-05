@@ -8,47 +8,34 @@ import {
   AuthGuard,
 } from 'nest-keycloak-connect';
 import { APP_GUARD } from '@nestjs/core';
+import { KeycloakController } from './keycloak.controller';
+import { KeycloakUserService } from './keycloak-user.service';
+import { KeycloakConfigService } from 'src/config/keycloak-config.service';
+import { ConfigModules } from 'src/config/config.module';
 
 @Module({
   imports: [
-    KeycloakConnectModule.register({
-      authServerUrl: process.env.KC_AUTH_SERVER_URL,
-      realm: process.env.KC_REALM,
-      clientId: process.env.KC_CLIENT_ID,
-      secret: process.env.KC_CLIENT_SECRET_KEY,
-      // Secret key of the client taken from keycloak server
+    KeycloakConnectModule.registerAsync({
+      useExisting: KeycloakConfigService,
+      imports: [ConfigModules],
     }),
   ],
-  controllers: [AppController],
+  controllers: [AppController, KeycloakController],
   providers: [
-    AppService,
-    // This adds a global level authentication guard,
-    // you can also have it scoped
-    // if you like.
-    //
-    // Will return a 401 unauthorized when it is unable to
-    // verify the JWT token or Bearer header is missing.
-    {
-      provide: APP_GUARD,
-      useClass: AuthGuard,
-    },
-    // This adds a global level resource guard, which is permissive.
-    // Only controllers annotated with @Resource and
-    // methods with @Scopes
-    // are handled by this guard.
-    {
-      provide: APP_GUARD,
-      useClass: ResourceGuard,
-    },
-    // New in 1.1.0
-    // This adds a global level role guard, which is permissive.
-    // Used by `@Roles` decorator with the
-    // optional `@AllowAnyRole` decorator for allowing any
-    // specified role passed.
+    KeycloakUserService,
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: AuthGuard,
+    // },
+    // {
+    //   provide: APP_GUARD,
+    //   useClass: ResourceGuard,
+    // },
     {
       provide: APP_GUARD,
       useClass: RoleGuard,
     },
+    AppService,
   ],
 })
 export class KeycloakModule {}

@@ -5,11 +5,11 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { KeycloakModule } from './keycloak/keycloak.module';
 import { KeycloakController } from './keycloak/keycloak.controller';
-import { KcUserService } from './keycloak/kc-user.service';
+import { KeycloakUserService } from './keycloak/keycloak-user.service';
 
 @Module({
-  imports: [ConfigModule.forRoot()],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [ConfigModule.forRoot(), KeycloakModule],
+  controllers: [AppController, KeycloakController],
+  providers: [AppService, KeycloakUserService],
 })
 export class AppModule {}
